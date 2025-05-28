@@ -2,7 +2,6 @@ import $ from 'jquery';
 import Player from './game/Parts/Player';
 import Game from './game/Parts/Game';
 
-
 $(document).ready(() => {
     const player = new Player('player', 'Pink_Monster');
     const game = new Game(player);
@@ -10,33 +9,100 @@ $(document).ready(() => {
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext("2d");
 
-    const sprite = new Image();
-        if(player.character === 'Pink_Monster'){
-        sprite.src = 'textures/lilheroes/1 Pink_Monster/Pink_Monster_Idle_4.png';
-
-    }
-
-    const frameHeight = 32;
-    const frameWidth = 32;
+    const frameSize = 32;
+    const totalFrames = 4;
+    const frameDelay = 100;
     let currentFrame = 0;
-    let totalFrames = 4;
-    const frameDelay = 150;
 
-    sprite.onload = () => {
+    const images = {
+        idle: new Image(),
+        moveUp: new Image(),
+        run: new Image()
+    };
+
+    images.idle.src = player.images.idle;
+    images.moveUp.src = player.images.moveUp;
+    images.run.src = player.images.run;
+
+    let currentImage = images.idle;
+    let flipHorizontal = false;
+
+    const onKeyDown = (e) => {
+        switch (e.key.toLowerCase()) {
+            case 'w':
+                player.moveUp();
+                currentImage = images.moveUp;
+                flipHorizontal = false;
+                setTimeout(() => {
+                    currentImage = images.idle;
+                }, 300);
+                break;
+            case 's':
+                player.moveDown();
+                currentImage = images.idle;
+                flipHorizontal = false;
+                break;
+            case 'd':
+                player.moveRight();
+                currentImage = images.run;
+                flipHorizontal = false;
+                break;
+            case 'a':
+                player.moveLeft();
+                currentImage = images.run;
+                flipHorizontal = true;
+                break;
+            default:
+                currentImage = images.idle;
+                flipHorizontal = false;
+                break;
+        }
+    };
+
+    const startAnimation = () => {
         setInterval(() => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(
-                sprite,
-                currentFrame * frameWidth, 0,
-                frameWidth, frameHeight,
-                100, 100,
-                frameWidth, frameHeight
-            );
+
+            const posX = 100 + player.positionX;
+            const posY = 100 + player.positionY;
+
+            if (flipHorizontal) {
+                ctx.save();
+                ctx.translate(posX + frameSize, posY);
+                ctx.scale(-1, 1);
+                ctx.drawImage(
+                    currentImage,
+                    currentFrame * frameSize, 0,
+                    frameSize, frameSize,
+                    0, 0,
+                    frameSize, frameSize
+                );
+                ctx.restore();
+            } else {
+                ctx.drawImage(
+                    currentImage,
+                    currentFrame * frameSize, 0,
+                    frameSize, frameSize,
+                    posX, posY,
+                    frameSize, frameSize
+                );
+            }
 
             currentFrame = (currentFrame + 1) % totalFrames;
         }, frameDelay);
-    }
+    };
 
+    let imagesLoaded = 0;
 
-    ctx.fillRect(10, 10, 150, 100);
+    const onImageLoad = () => {
+        imagesLoaded++;
+        if (imagesLoaded === Object.keys(images).length) {
+            document.addEventListener('keydown', onKeyDown);
+            startAnimation();
+        }
+    };
+
+    images.idle.onload = onImageLoad;
+    images.moveUp.onload = onImageLoad;
+    images.run.onload = onImageLoad;
 });
