@@ -1,4 +1,4 @@
-class Player {
+export default class Player {
     constructor(name){
         this.name = name;
         this.positionX = 0;
@@ -23,11 +23,11 @@ class Player {
     }
 
     addPoint(){
-        this.point++;
+        this.points++;
     }
 
     setZero(){
-        this.point = 0;
+        this.points = 0;
         this.positionX = 0;
         this.positionY;
     }

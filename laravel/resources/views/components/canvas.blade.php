@@ -1,6 +1,8 @@
 @push('scripts')
-    vite(['resources/js/game/Game.js' , 'resources/js/game/Player.js'])
+    @vite([
+        'resources/js/main.js'
+    ])
 @endpush
 
-
 <canvas id="game-canvas"></canvas>
+

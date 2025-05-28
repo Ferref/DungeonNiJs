@@ -1,14 +1,15 @@
-class Game {
+export default class Game {
     constructor(player = 'Player1'){
         this.player = player;
     }
 
     start(){
         this.player.setZero();
+        console.log('game started');
     }
 
     pause(){
-        //...
+        console.log('game paused');
     }
 
     movePlayerUp(){
