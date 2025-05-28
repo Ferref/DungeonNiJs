@@ -1,9 +1,10 @@
 export default class Player {
-    constructor(name){
+    constructor(name, character){
         this.name = name;
         this.positionX = 0;
         this.positionY = 0;
         this.points = 0;
+        this.character = character;
     }
 
     moveUp(){
