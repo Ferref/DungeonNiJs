@@ -18,7 +18,7 @@ export default class Player {
     }
 
     moveDown(){
-        this.positionY--;
+        this.positionY += 5;
     }
 
     moveLeft(){

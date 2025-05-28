@@ -27,30 +27,35 @@ $(document).ready(() => {
     let currentImage = images.idle;
     let flipHorizontal = false;
 
+    const idleSlow = function(){
+        setTimeout(() => {
+            currentImage = images.idle;
+        }, 300);
+    }
+
     const onKeyDown = (e) => {
         switch (e.key.toLowerCase()) {
             case 'w':
                 player.moveUp();
                 currentImage = images.moveUp;
                 flipHorizontal = false;
-                setTimeout(() => {
-                    currentImage = images.idle;
-                }, 300);
                 break;
             case 's':
                 player.moveDown();
-                currentImage = images.idle;
+                currentImage = images.moveUp;
                 flipHorizontal = false;
                 break;
             case 'd':
                 player.moveRight();
                 currentImage = images.run;
                 flipHorizontal = false;
+                idleSlow();
                 break;
             case 'a':
                 player.moveLeft();
                 currentImage = images.run;
                 flipHorizontal = true;
+                idleSlow();
                 break;
             default:
                 currentImage = images.idle;
@@ -65,11 +70,12 @@ $(document).ready(() => {
 
             const posX = 100 + player.positionX;
             const posY = 100 + player.positionY;
+            const scale = 1;
 
             if (flipHorizontal) {
                 ctx.save();
                 ctx.translate(posX + frameSize, posY);
-                ctx.scale(-1, 1);
+                ctx.scale(-1, scale);
                 ctx.drawImage(
                     currentImage,
                     currentFrame * frameSize, 0,
