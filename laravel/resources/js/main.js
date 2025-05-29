@@ -7,6 +7,7 @@ $(document).ready(() => {
     const game = new Game(player);
 
     const canvas = document.getElementById('game-canvas');
+
     const ctx = canvas.getContext("2d");
 
     const frameSize = 32;
@@ -29,36 +30,37 @@ $(document).ready(() => {
     let currentImage = images.idle;
     let flipHorizontal = false;
 
-    const idleSlow = function(){
-        setTimeout(() => {
-            currentImage = images.idle;
-        }, 300);
+    let idleTimeout;
+
+    function setIdleTimeout(){
+        idleTimeout = setTimeout(idleMovement, 150);
+    }
+
+    function idleMovement(){
+        currentImage = images.idle;
     }
 
     const onKeyDown = (e) => {
         switch (e.key.toLowerCase()) {
             case 'w':
-                player.moveUp();
+                clearTimeout(idleTimeout);
                 currentImage = images.moveUp;
                 flipHorizontal = false;
-                idleSlow();
                 break;
             case 's':
-                player.moveDown();
+                clearTimeout(idleTimeout);
                 currentImage = images.moveDown;
                 flipHorizontal = false;
                 break;
             case 'd':
-                player.moveRight();
+                clearTimeout(idleTimeout);
                 currentImage = images.run;
                 flipHorizontal = false;
-                idleSlow();
                 break;
             case 'a':
-                player.moveLeft();
+                clearTimeout(idleTimeout);
                 currentImage = images.run;
                 flipHorizontal = true;
-                idleSlow();
                 break;
             default:
                 currentImage = images.idle;
@@ -67,18 +69,27 @@ $(document).ready(() => {
         }
     };
 
+    const onKeyUp = (e) => {
+        if(['w', 'a', 's', 'd'].includes(e.key.toLowerCase())){
+            setIdleTimeout();
+        }
+    }
+
     const startAnimation = () => {
         let lastFrameTime = 0;
 
         const animate = (timestamp) => {
-            if (!lastFrameTime) lastFrameTime = timestamp;
+            if (!lastFrameTime) {
+                lastFrameTime = timestamp;
+            }
+
             const delta = timestamp - lastFrameTime;
 
             if (delta > frameDelay) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                const posX = 100 + player.positionX;
-                const posY = 100 + player.positionY;
+                const posX = Math.floor((canvas.width - frameSize) / 2);
+                const posY = Math.floor((canvas.height - frameSize) / 2);
                 const scale = 1;
 
                 if (flipHorizontal) {
@@ -120,6 +131,7 @@ $(document).ready(() => {
         imagesLoaded++;
         if (imagesLoaded === Object.keys(images).length) {
             document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
             startAnimation();
         }
     };
@@ -128,5 +140,4 @@ $(document).ready(() => {
     images.moveUp.onload = onImageLoad;
     images.run.onload = onImageLoad;
     images.moveDown.onload = onImageLoad;
-    
 });

@@ -1,5 +1,5 @@
 export default class Player {
-    constructor(name, character){
+    constructor(name, background){
         this.name = name;
         this.positionX = 0;
         this.positionY = 0;
@@ -12,25 +12,5 @@ export default class Player {
             moveDown: 'textures/lilheroes/1 Pink_Monster/Pink_Monster_Walk_6.png',
             run: 'textures/lilheroes/1 Pink_Monster/Pink_Monster_Run_6.png',
         }
-    }
-
-    moveUp(){
-        this.positionY -= 5;
-    }
-
-    moveDown(){
-        this.positionY += 5;
-    }
-
-    moveLeft(){
-        this.positionX -= 5;
-    }
-
-    moveRight(){
-        this.positionX += 5;
-    }
-
-    idle(){
-        this.positionY = 0;
     }
 }
