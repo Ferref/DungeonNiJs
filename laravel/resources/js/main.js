@@ -2,178 +2,206 @@ import $ from 'jquery';
 import Player from './game/Parts/Player';
 import Game from './game/Parts/Game';
 
+class Background {
+  constructor(ctx, canvas) {
+    this.ctx = ctx;
+    this.canvas = canvas;
+    this.pixelSize = 4;
+
+    this.mapCols = 1000;
+    this.mapRows = 1000;
+
+    this.viewportX = 0;
+    this.viewportY = 0;
+
+    this.glassColorsHex = [
+      '#0B3D0B99', '#0F520FCC', '#14521499',
+      '#1A631ACC', '#1E7B1ECC', '#225E2299', '#2A7F2ACC'
+    ];
+
+    this.map = this.generateMap();
+  }
+
+  generateMap() {
+    return Array.from({ length: this.mapCols }, () =>
+      Array.from({ length: this.mapRows }, () =>
+        this.getRandomColor()
+      )
+    );
+  }
+
+  getRandomColor() {
+    const index = Math.floor(Math.random() * this.glassColorsHex.length);
+    return this.glassColorsHex[index];
+  }
+
+  update(direction) {
+    const speed = 4;
+    const maxX = (this.mapCols * this.pixelSize) - this.canvas.width;
+    const maxY = (this.mapRows * this.pixelSize) - this.canvas.height;
+
+    switch (direction) {
+      case 'up':    this.viewportY = Math.max(this.viewportY - speed, 0); break;
+      case 'down':  this.viewportY = Math.min(this.viewportY + speed, maxY); break;
+      case 'left':  this.viewportX = Math.max(this.viewportX - speed, 0); break;
+      case 'right': this.viewportX = Math.min(this.viewportX + speed, maxX); break;
+    }
+  }
+
+  draw() {
+    const startCol = Math.floor(this.viewportX / this.pixelSize);
+    const endCol = Math.min(startCol + Math.ceil(this.canvas.width / this.pixelSize) + 1, this.mapCols);
+    const startRow = Math.floor(this.viewportY / this.pixelSize);
+    const endRow = Math.min(startRow + Math.ceil(this.canvas.height / this.pixelSize) + 1, this.mapRows);
+
+    for (let col = startCol; col < endCol; col++) {
+      for (let row = startRow; row < endRow; row++) {
+        const color = this.map[col][row];
+        const drawX = (col * this.pixelSize) - this.viewportX;
+        const drawY = (row * this.pixelSize) - this.viewportY;
+
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(drawX, drawY, this.pixelSize, this.pixelSize);
+      }
+    }
+  }
+}
+
+class Animator {
+  constructor(player, ctx, canvas) {
+    this.player = player;
+    this.ctx = ctx;
+    this.canvas = canvas;
+
+    this.frameSize = 32;
+    this.totalFrames = 4;
+    this.frameDelay = 100;
+    this.currentFrame = 0;
+    this.currentImage = null;
+    this.flipHorizontal = false;
+
+    this.images = {
+      idle: new Image(),
+      moveUp: new Image(),
+      moveDown: new Image(),
+      run: new Image(),
+    };
+
+    this.idleTimeout = null;
+    this.background = new Background(ctx, canvas);
+
+    this.loadImages();
+  }
+
+  loadImages() {
+    this.images.idle.src = this.player.images.idle;
+    this.images.moveUp.src = this.player.images.moveUp;
+    this.images.moveDown.src = this.player.images.moveDown;
+    this.images.run.src = this.player.images.run;
+
+    let loadedCount = 0;
+    const totalImages = Object.keys(this.images).length;
+
+    Object.values(this.images).forEach(image => {
+      image.onload = () => {
+        if (++loadedCount === totalImages) {
+          this.currentImage = this.images.idle;
+          this.addEventListeners();
+          this.startAnimation();
+        }
+      };
+    });
+  }
+
+  addEventListeners() {
+    document.addEventListener('keydown', e => this.handleKeyDown(e));
+    document.addEventListener('keyup', e => this.handleKeyUp(e));
+  }
+
+  handleKeyDown(event) {
+    clearTimeout(this.idleTimeout);
+    const key = event.key.toLowerCase();
+
+    switch (key) {
+      case 'w':
+        this.setAnimation('moveUp', false, 'up');
+        break;
+      case 's':
+        this.setAnimation('moveDown', false, 'down');
+        break;
+      case 'd':
+        this.setAnimation('run', false, 'right');
+        break;
+      case 'a':
+        this.setAnimation('run', true, 'left');
+        break;
+      default:
+        this.setAnimation('idle', false);
+        break;
+    }
+  }
+
+  handleKeyUp(event) {
+    if (['w', 'a', 's', 'd'].includes(event.key.toLowerCase())) {
+      this.setIdleAfterDelay();
+    }
+  }
+
+  setAnimation(imageKey, flip = false, direction = null) {
+    this.currentImage = this.images[imageKey];
+    this.flipHorizontal = flip;
+    if (direction) this.background.update(direction);
+  }
+
+  setIdleAfterDelay() {
+    clearTimeout(this.idleTimeout);
+    this.idleTimeout = setTimeout(() => {
+      this.currentImage = this.images.idle;
+    }, 150);
+  }
+
+  startAnimation() {
+    let lastFrameTime = 0;
+
+    const animate = (timestamp) => {
+      if (!lastFrameTime) lastFrameTime = timestamp;
+      const delta = timestamp - lastFrameTime;
+
+      if (delta > this.frameDelay) {
+        this.renderFrame();
+        this.currentFrame = (this.currentFrame + 1) % this.totalFrames;
+        lastFrameTime += this.frameDelay;
+      }
+
+      requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+  }
+
+  renderFrame() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.background.draw();
+
+    const posX = Math.floor((this.canvas.width - this.frameSize) / 2);
+    const posY = Math.floor((this.canvas.height - this.frameSize) / 2);
+
+    if (this.flipHorizontal) {
+      this.ctx.save();
+      this.ctx.translate(posX + this.frameSize, posY);
+      this.ctx.scale(-1, 1);
+      this.ctx.drawImage(this.currentImage, this.currentFrame * this.frameSize, 0, this.frameSize, this.frameSize, 0, 0, this.frameSize, this.frameSize);
+      this.ctx.restore();
+    } else {
+      this.ctx.drawImage(this.currentImage, this.currentFrame * this.frameSize, 0, this.frameSize, this.frameSize, posX, posY, this.frameSize, this.frameSize);
+    }
+  }
+}
+
 $(document).ready(() => {
-    const player = new Player('player', 'Pink_Monster');
-    const game = new Game(player);
-
-    const canvas = document.getElementById('game-canvas');
-
-    const ctx = canvas.getContext("2d");
-
-    const frameSize = 32;
-    const totalFrames = 4;
-    const frameDelay = 100;
-    let currentFrame = 0;
-
-    const images = {
-        idle: new Image(),
-        moveUp: new Image(),
-        moveDown: new Image(),
-        run: new Image(),
-    };
-
-    images.idle.src = player.images.idle;
-    images.moveUp.src = player.images.moveUp;
-    images.moveDown.src = player.images.moveDown;
-    images.run.src = player.images.run;
-
-    let currentImage = images.idle;
-    let flipHorizontal = false;
-
-    let idleTimeout;
-
-    function setIdleTimeout(){
-        idleTimeout = setTimeout(idleMovement, 150);
-    }
-
-    function idleMovement(){
-        currentImage = images.idle;
-    }
-
-    const onKeyDown = (e) => {
-        switch (e.key.toLowerCase()) {
-            case 'w':
-                clearTimeout(idleTimeout);
-                currentImage = images.moveUp;
-                flipHorizontal = false;
-                break;
-            case 's':
-                clearTimeout(idleTimeout);
-                currentImage = images.moveDown;
-                flipHorizontal = false;
-                break;
-            case 'd':
-                clearTimeout(idleTimeout);
-                currentImage = images.run;
-                flipHorizontal = false;
-                break;
-            case 'a':
-                clearTimeout(idleTimeout);
-                currentImage = images.run;
-                flipHorizontal = true;
-                break;
-            default:
-                currentImage = images.idle;
-                flipHorizontal = false;
-                break;
-        }
-    };
-
-    const onKeyUp = (e) => {
-        if(['w', 'a', 's', 'd'].includes(e.key.toLowerCase())){
-            setIdleTimeout();
-        }
-    }
-
-    const startAnimation = () => {
-        let lastFrameTime = 0;
-
-        const animate = (timestamp) => {
-            if (!lastFrameTime) {
-                lastFrameTime = timestamp;
-            }
-
-            const delta = timestamp - lastFrameTime;
-
-            if (delta > frameDelay) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                drawBackground(ctx, canvas);
-
-                const posX = Math.floor((canvas.width - frameSize) / 2);
-                const posY = Math.floor((canvas.height - frameSize) / 2);
-                const scale = 1;
-
-                if (flipHorizontal) {
-                    ctx.save();
-                    ctx.translate(posX + frameSize, posY);
-                    ctx.scale(-1, scale);
-                    ctx.drawImage(
-                        currentImage,
-                        currentFrame * frameSize, 0,
-                        frameSize, frameSize,
-                        0, 0,
-                        frameSize, frameSize
-                    );
-                    ctx.restore();
-                } else {
-                    ctx.drawImage(
-                        currentImage,
-                        currentFrame * frameSize, 0,
-                        frameSize, frameSize,
-                        posX, posY,
-                        frameSize, frameSize
-                    );
-                }
-
-                currentFrame = (currentFrame + 1) % totalFrames;
-                lastFrameTime += frameDelay;
-            }
-
-            requestAnimationFrame(animate);
-        };
-
-        requestAnimationFrame(animate);
-    };
-
-
-    let imagesLoaded = 0;
-
-    const onImageLoad = () => {
-        imagesLoaded++;
-        if (imagesLoaded === Object.keys(images).length) {
-            document.addEventListener('keydown', onKeyDown);
-            document.addEventListener('keyup', onKeyUp);
-            startAnimation();
-        }
-    };
-
-    images.idle.onload = onImageLoad;
-    images.moveUp.onload = onImageLoad;
-    images.run.onload = onImageLoad;
-    images.moveDown.onload = onImageLoad;
-
-    
-    function drawBackground(ctx, canvas=null){
-
-        const glassColorsHex = [
-        '#0B3D0B99', // very dark green, 60% opacity
-        '#0F520FCC', // dark green, 80% opacity
-        '#14521499', // darker green, 60% opacity
-        '#1A631ACC', // rich dark green, 80% opacity
-        '#1E7B1ECC', // strong dark green, 80% opacity
-        '#225E2299', // medium dark green, 60% opacity
-        '#2A7F2ACC', // vivid dark green, 80% opacity
-        ];
-
-        let rowIndex = 0;
-        let pixelSize = 4; // smaller number means more pixels
-        while(rowIndex < canvas.width){
-            const randomGreenColor = glassColorsHex[Math.floor(Math.random() * glassColorsHex.length)];
-            ctx.fillStyle = randomGreenColor;
-            ctx.fillRect(rowIndex, 0, pixelSize, pixelSize);
-            
-            let columnIndex = 0;
-            while(columnIndex < canvas.height){
-                const randomGreenColor = glassColorsHex[Math.floor(Math.random() * glassColorsHex.length)];
-                ctx.fillStyle = randomGreenColor;
-                ctx.fillRect(rowIndex, columnIndex, pixelSize, pixelSize);
-                columnIndex += pixelSize;
-            }
-            rowIndex += pixelSize;
-        }
-
-    }
+  const player = new Player('player', 'Pink_Monster');
+  const game = new Game(player);
+  const canvas = document.getElementById('game-canvas');
+  const ctx = canvas.getContext('2d');
+  new Animator(player, ctx, canvas);
 });
-
-
