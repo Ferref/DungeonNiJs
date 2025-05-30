@@ -12,7 +12,7 @@ $(document).ready(() => {
 
     const frameSize = 32;
     const totalFrames = 4;
-    const frameDelay = 50;
+    const frameDelay = 100;
     let currentFrame = 0;
 
     const images = {
@@ -88,6 +88,8 @@ $(document).ready(() => {
             if (delta > frameDelay) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+                drawBackground(ctx, canvas);
+
                 const posX = Math.floor((canvas.width - frameSize) / 2);
                 const posY = Math.floor((canvas.height - frameSize) / 2);
                 const scale = 1;
@@ -140,4 +142,38 @@ $(document).ready(() => {
     images.moveUp.onload = onImageLoad;
     images.run.onload = onImageLoad;
     images.moveDown.onload = onImageLoad;
+
+    
+    function drawBackground(ctx, canvas=null){
+
+        const glassColorsHex = [
+        '#0B3D0B99', // very dark green, 60% opacity
+        '#0F520FCC', // dark green, 80% opacity
+        '#14521499', // darker green, 60% opacity
+        '#1A631ACC', // rich dark green, 80% opacity
+        '#1E7B1ECC', // strong dark green, 80% opacity
+        '#225E2299', // medium dark green, 60% opacity
+        '#2A7F2ACC', // vivid dark green, 80% opacity
+        ];
+
+        let rowIndex = 0;
+        let pixelSize = 4; // smaller number means more pixels
+        while(rowIndex < canvas.width){
+            const randomGreenColor = glassColorsHex[Math.floor(Math.random() * glassColorsHex.length)];
+            ctx.fillStyle = randomGreenColor;
+            ctx.fillRect(rowIndex, 0, pixelSize, pixelSize);
+            
+            let columnIndex = 0;
+            while(columnIndex < canvas.height){
+                const randomGreenColor = glassColorsHex[Math.floor(Math.random() * glassColorsHex.length)];
+                ctx.fillStyle = randomGreenColor;
+                ctx.fillRect(rowIndex, columnIndex, pixelSize, pixelSize);
+                columnIndex += pixelSize;
+            }
+            rowIndex += pixelSize;
+        }
+
+    }
 });
+
+

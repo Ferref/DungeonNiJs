@@ -17,9 +17,9 @@ body {
 }
 
 #game-canvas {
-    background-color: whitesmoke;
     height: 75%;
     aspect-ratio: 16/9;
     border: 3px solid black;
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.33);
 }
+
