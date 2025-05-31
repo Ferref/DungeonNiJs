@@ -85,6 +85,7 @@ class Animator {
       moveUp: new Image(),
       moveDown: new Image(),
       run: new Image(),
+      attack1: new Image(),
     };
 
     this.idleTimeout = null;
@@ -98,6 +99,7 @@ class Animator {
     this.images.moveUp.src = this.player.images.moveUp;
     this.images.moveDown.src = this.player.images.moveDown;
     this.images.run.src = this.player.images.run;
+    this.images.attack1.src = this.player.images.attack1;
 
     let loadedCount = 0;
     const totalImages = Object.keys(this.images).length;
@@ -124,33 +126,41 @@ class Animator {
 
     switch (key) {
       case 'w':
-        this.setAnimation('moveUp', false, 'up');
+        this.setAnimation('moveUp', this.flipHorizontal, 'up');
         break;
       case 's':
-        this.setAnimation('moveDown', false, 'down');
+        this.setAnimation('moveDown', this.flipHorizontal, 'down');
         break;
       case 'd':
-        this.setAnimation('run', false, 'right');
+        this.flipHorizontal = false;
+        this.setAnimation('run', this.flipHorizontal, 'right');
         break;
       case 'a':
-        this.setAnimation('run', true, 'left');
+        this.flipHorizontal = true;
+        this.setAnimation('run', this.flipHorizontal, 'left');
+        break;
+      case ' ':
+        this.setAnimation('attack1', this.flipHorizontal);
         break;
       default:
-        this.setAnimation('idle', false);
+        this.setAnimation('idle', this.flipHorizontal);
         break;
     }
   }
 
   handleKeyUp(event) {
-    if (['w', 'a', 's', 'd'].includes(event.key.toLowerCase())) {
+    if (['w', 'a', 's', 'd', ' '].includes(event.key.toLowerCase())) {
       this.setIdleAfterDelay();
     }
   }
 
   setAnimation(imageKey, flip = false, direction = null) {
     this.currentImage = this.images[imageKey];
+    console.log(this.currentImage)
     this.flipHorizontal = flip;
-    if (direction) this.background.update(direction);
+    if (direction){
+      this.background.update(direction);
+    }
   }
 
   setIdleAfterDelay() {

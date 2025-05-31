@@ -10,6 +10,7 @@ export default class Player {
             moveUp: 'textures/lilheroes/1 Pink_Monster/Pink_Monster_Climb_4.png',
             moveDown: 'textures/lilheroes/1 Pink_Monster/Pink_Monster_Walk_6.png',
             run: 'textures/lilheroes/1 Pink_Monster/Pink_Monster_Run_6.png',
+            attack1: 'textures/lilheroes/1 Pink_Monster/Pink_Monster_Attack1_4.png'
         }
     }
 }
