@@ -3,7 +3,6 @@ export default class Game {
         this.player = player;
     }
 
-
     start(){
         this.player.setZero();
         console.log('game started');

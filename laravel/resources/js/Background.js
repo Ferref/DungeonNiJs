@@ -1,7 +1,8 @@
 export default class Background {
-  constructor(ctx, canvas) {
+  constructor(ctx, canvas, assets) {
     this.ctx = ctx;
     this.canvas = canvas;
+    this.assets = assets;
     this.pixelSize = 4;
 
     this.mapCols = 1000;
@@ -16,14 +17,18 @@ export default class Background {
     ];
 
     this.map = this.generateMap();
+
   }
 
   generateMap() {
-    return Array.from({ length: this.mapCols }, () =>
+
+    let mapBase = Array.from({ length: this.mapCols }, () =>
       Array.from({ length: this.mapRows }, () =>
         this.getRandomColor()
       )
     );
+
+    return mapBase;
   }
 
   getRandomColor() {
@@ -49,6 +54,8 @@ export default class Background {
     const endCol = Math.min(startCol + Math.ceil(this.canvas.width / this.pixelSize) + 1, this.mapCols);
     const startRow = Math.floor(this.viewportY / this.pixelSize);
     const endRow = Math.min(startRow + Math.ceil(this.canvas.height / this.pixelSize) + 1, this.mapRows);
+
+    // Draw Assets
 
     for (let col = startCol; col < endCol; col++) {
       for (let row = startRow; row < endRow; row++) {

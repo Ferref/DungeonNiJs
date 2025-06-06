@@ -1,8 +1,9 @@
 export default class Animator {
-  constructor(player, ctx, canvas, background) {
+  constructor(player, ctx, canvas, background, assets) {
     this.player = player;
     this.ctx = ctx;
     this.canvas = canvas;
+    this.assets = assets;
 
     this.frameSize = 32;
     this.totalFrames = 4;
@@ -17,6 +18,7 @@ export default class Animator {
       moveDown: new Image(),
       run: new Image(),
       attack1: new Image(),
+      tree1: new Image()
     };
 
     this.idleTimeout = null;
@@ -31,6 +33,9 @@ export default class Animator {
     this.images.moveDown.src = this.player.images.moveDown;
     this.images.run.src = this.player.images.run;
     this.images.attack1.src = this.player.images.attack1;
+    this.images.tree1.src = this.assets.tree1.images.idle;
+    console.log(this.assets)
+    // console.log(this.images)
 
     let loadedCount = 0;
     const totalImages = Object.keys(this.images).length;
