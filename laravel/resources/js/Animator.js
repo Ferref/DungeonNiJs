@@ -34,8 +34,7 @@ export default class Animator {
     this.images.run.src = this.player.images.run;
     this.images.attack1.src = this.player.images.attack1;
     this.images.tree1.src = this.assets.tree1.images.idle;
-    console.log(this.assets)
-    // console.log(this.images)
+
 
     let loadedCount = 0;
     const totalImages = Object.keys(this.images).length;

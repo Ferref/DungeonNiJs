@@ -1,45 +1,19 @@
 export default class Background {
-  constructor(ctx, canvas, assets) {
+  constructor(ctx, canvas, assets, map) {
     this.ctx = ctx;
     this.canvas = canvas;
     this.assets = assets;
     this.pixelSize = 4;
-
-    this.mapCols = 1000;
-    this.mapRows = 1000;
-
     this.viewportX = 0;
     this.viewportY = 0;
-
-    this.glassColorsHex = [
-      '#0B3D0B99', '#0F520FCC', '#14521499',
-      '#1A631ACC', '#1E7B1ECC', '#225E2299', '#2A7F2ACC'
-    ];
-
-    this.map = this.generateMap();
-
-  }
-
-  generateMap() {
-
-    let mapBase = Array.from({ length: this.mapCols }, () =>
-      Array.from({ length: this.mapRows }, () =>
-        this.getRandomColor()
-      )
-    );
-
-    return mapBase;
-  }
-
-  getRandomColor() {
-    const index = Math.floor(Math.random() * this.glassColorsHex.length);
-    return this.glassColorsHex[index];
+    this.map = map;
+    this.mapTexture = null;
   }
 
   update(direction) {
     const speed = 4;
-    const maxX = (this.mapCols * this.pixelSize) - this.canvas.width;
-    const maxY = (this.mapRows * this.pixelSize) - this.canvas.height;
+    const maxX = (this.map.mapCols * this.pixelSize) - this.canvas.width;
+    const maxY = (this.map.mapRows * this.pixelSize) - this.canvas.height;
 
     switch (direction) {
       case 'up':    this.viewportY = Math.max(this.viewportY - speed, 0); break;
@@ -50,16 +24,19 @@ export default class Background {
   }
 
   draw() {
+    if(this.mapTexture === null){
+      this.mapTexture = this.map.generateMap();
+    }
+
     const startCol = Math.floor(this.viewportX / this.pixelSize);
-    const endCol = Math.min(startCol + Math.ceil(this.canvas.width / this.pixelSize) + 1, this.mapCols);
+    const endCol = Math.min(startCol + Math.ceil(this.canvas.width / this.pixelSize) + 1, this.map.mapCols);
     const startRow = Math.floor(this.viewportY / this.pixelSize);
-    const endRow = Math.min(startRow + Math.ceil(this.canvas.height / this.pixelSize) + 1, this.mapRows);
+    const endRow = Math.min(startRow + Math.ceil(this.canvas.height / this.pixelSize) + 1, this.map.mapRows);
 
     // Draw Assets
-
     for (let col = startCol; col < endCol; col++) {
       for (let row = startRow; row < endRow; row++) {
-        const color = this.map[col][row];
+        const color = this.mapTexture[row][col];
         const drawX = (col * this.pixelSize) - this.viewportX;
         const drawY = (row * this.pixelSize) - this.viewportY;
 

@@ -4,6 +4,7 @@ import Game from './Game';
 import Background from './Background';
 import Animator from './Animator';
 import Asset from './Asset';
+import Map from './Map';
 
 $(document).ready(() => {
   // Set up player
@@ -20,13 +21,14 @@ $(document).ready(() => {
   const ctx = canvas.getContext('2d');
   const assets =
     {
-      'tree1' : 
+      'tree1' :
         new Asset('tree1', {
           'idle' : './textures/textures/PNG/Assets_separately/Trees/Tree1.png'
         })
     };
-    
-  const background = new Background(ctx, canvas, assets);
+
+  const map = new Map("Magnifying Forest");
+  const background = new Background(ctx, canvas, assets, map);
   const animator = new Animator(player, ctx, canvas, background, assets);
 });
 

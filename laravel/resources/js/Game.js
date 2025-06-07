@@ -5,7 +5,6 @@ export default class Game {
 
     start(){
         this.player.setZero();
-        console.log('game started');
     }
 
     pause(){
