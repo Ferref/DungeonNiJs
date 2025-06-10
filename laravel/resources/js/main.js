@@ -5,6 +5,7 @@ import Background from './Background';
 import Animator from './Animator';
 import Asset from './Asset';
 import Map from './Map';
+import { MagnificantForest } from './Maps/MagnificantForest';
 
 $(document).ready(() => {
   // Set up player
@@ -27,7 +28,7 @@ $(document).ready(() => {
         })
     };
 
-  const map = new Map("Magnifying Forest");
+  const map = new MagnificantForest(assets);
   const background = new Background(ctx, canvas, assets, map);
   const animator = new Animator(player, ctx, canvas, background, assets);
 });
