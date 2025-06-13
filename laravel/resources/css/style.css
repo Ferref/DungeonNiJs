@@ -8,6 +8,7 @@ body {
     width: 100vw;
     background-image: url('../images/bg.png');
     background-size: cover;
+    overflow: hidden;
 }
 
 .main-container {
